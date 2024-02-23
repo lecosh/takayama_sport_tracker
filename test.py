@@ -9,13 +9,12 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
+import apiinfo
 
 router = Router()
-bot = Bot(token='7189898885:AAH1Ys-XnvzxgidUDUj3cPT3b-ifvAYkc1U', parse_mode=ParseMode.HTML)
+bot = Bot(token=apiinfo.API_KEY, parse_mode=ParseMode.HTML)
 dp = Dispatcher(storage=MemoryStorage())
 dp.include_router(router)
-
-router = Router()
 
 @router.message(Command("start"))
 async def start_handler(msg:Message):
