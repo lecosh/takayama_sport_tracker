@@ -1,1 +1,1 @@
-print("ok")asdasdasdasd
+print("ok")
