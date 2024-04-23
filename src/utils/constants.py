@@ -1,6 +1,5 @@
 import sqlite3
-from aiogram import Bot, Dispatcher
-from aiogram import Router
+from aiogram import Bot, Dispatcher, Router
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.enums.parse_mode import ParseMode
 
