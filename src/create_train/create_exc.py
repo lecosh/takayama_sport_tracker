@@ -6,11 +6,21 @@ from ..utils.constants import *
 from ..utils.util import *
 
 
-@dp.message(F.text.lower() == "создать своё упражнение", StateFilter("Choosing_excersize:choose_creation_type"))
+"""Handler for createing own excersize. 
+Format of user message isn't validating. After user message bot is setting in 
+"Choosing excersize:own_excersize" state.
+"""
+@dp.message(F.text.lower() == "создать своё упражнение", 
+            StateFilter("Choosing_excersize:choose_creation_type"))
 async def choose_type(msg: types.Message, state: FSMContext):
-    await msg.answer("Отлично! Опишите своё упражнение (название, количество подходов)", reply_markup=types.ReplyKeyboardRemove())
+    await msg.answer("Отлично! Опишите своё упражнение (название, количество подходов)", 
+                     reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(Choosing_excersize.own_excersize)
 
+
+"""Handler for user own excersize. 
+After that bot is setting in "Choosing_excersize:add_next_exc" state.
+"""
 @dp.message(StateFilter("Choosing_excersize:own_excersize"))
 async def message_handler(msg: Message, state: FSMContext):
     await msg.answer("Отлично, это упражнение будет добавлено в базу данных")
