@@ -12,11 +12,11 @@ def create_list(exc_type):
     return excersize_str
 
 
-"""Adding train in database.
-Different trains separates in database with "\n" symbol. 
-Note: while parsing trains for import trains, pay attention on following separation.
-"""
 async def push_train_db(state, msg):
+    """Adding train in database.
+    Different trains separates in database with "\n" symbol. 
+    Note: while parsing trains for import trains, pay attention on following separation.
+    """
     cursor.execute("SELECT train FROM Trains WHERE id = ?", (msg.from_user.id,))
     data = await state.get_data()
     trains = data["choosen_train"]
@@ -27,11 +27,11 @@ async def push_train_db(state, msg):
     db.commit()
 
 
-"""This is class containing differrent states of bot when user creating excersizes for train.
-This states is used only in "/create_train" command, each state trigger different stages 
-of creating an excersize.
-"""
 class Choosing_excersize(StatesGroup):
+    """This is class containing differrent states of bot when user creating excersizes for train.
+    This states is used only in "/create_train" command, each state trigger different stages 
+    of creating an excersize.
+    """
     type_exc = State() #typer of an existing excersize
     number_exc = State() #number of excersize in array
     exc_reps = State() #amount of reps in excersize
