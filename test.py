@@ -17,7 +17,7 @@ import sqlite3
 import os
 import aiosqlite
 from aiogram.types import FSInputFile, URLInputFile, BufferedInputFile
-
+import csv
 
 
 
@@ -77,12 +77,32 @@ async def handle_document(message: types.Message):
 
     # Скачиваем файл
     await bot.download_file(file_info.file_path, destination)
+    file_extension = os.path.splitext(destination)[1]
+    if file_extension.lower() == '.xlsx':
+        print(0)
+        data = read_xlsx(destination)
 
+    elif file_extension.lower() == '.csv':
+        print(1)
+        data = read_csv(destination)
+    else:
+        await message.reply("Неподдерживаемый тип файла. Пожалуйста, отправьте файл в формате .xlsx или .csv.")
+        return
     # Уведомляем пользователя о сохранении файла
     await message.reply(f"Файл был сохранен по пути: {destination}")
     user_id = message.from_user.id
-    data = read_xlsx(destination)
     await save_to_db(user_id, data)
+
+
+#Чтение данных из CSV
+def read_csv(file_path):
+    data = []
+    with open(file_path, newline='', encoding='utf-8') as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)  # Пропускаем заголовок
+        for row in reader:
+            data.append(row[:7])  # Считываем только первые семь колонок
+    return data
 
 # Чтение данных из xlsx файла
 def read_xlsx(file_path):
@@ -93,18 +113,31 @@ def read_xlsx(file_path):
         data.append(list(row))
     return data
 
+
 async def save_to_db(user_id, data):
     async with aiosqlite.connect('kl1de.db') as db:
-        print(data)
+        # Создаем таблицу, если она не существует
         await db.execute('CREATE TABLE IF NOT EXISTS Trains (id INTEGER PRIMARY KEY, train TEXT)')
-        cursor = await db.execute('SELECT id FROM Trains WHERE id = ?', (user_id,))
-        if await cursor.fetchone():
-            trains = ', '.join(data[0])  # предполагаем, что data[0] содержит нужные данные
-            await db.execute('UPDATE Trains SET train = ? WHERE id = ?', (trains, user_id))
+
+        # Преобразуем все строки входных данных в одну строку текста
+        new_train_data = ', '.join(', '.join(str(item) for item in row) for row in data)
+
+        # Проверяем наличие существующих данных для этого пользователя
+        cursor = await db.execute('SELECT train FROM Trains WHERE id = ?', (user_id,))
+        existing_train_data = await cursor.fetchone()
+
+        if existing_train_data:
+            # Обновляем существующую запись новыми данными
+            await db.execute('UPDATE Trains SET train = ? WHERE id = ?', (new_train_data, user_id))
         else:
-            trains = ', '.join(data[0])  # предполагаем, что data[0] содержит нужные данные
-            await db.execute('INSERT INTO Trains (id, train) VALUES (?, ?)', (user_id, trains))
+            # Добавляем новые данные, если для этого пользователя их еще нет
+            await db.execute('INSERT INTO Trains (id, train) VALUES (?, ?)', (user_id, new_train_data))
+
+        # Фиксируем изменения в базе данных
         await db.commit()
+
+
+
 
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
