@@ -1,13 +1,14 @@
-import telebot 
+import asyncio
+import logging
+
+from aiogram import Bot, Dispatcher, Router, types, F
+from aiogram.enums.parse_mode import ParseMode
+from aiogram.fsm.storage.memory import MemoryStorage
+from aiogram.filters import Command
+from aiogram.types import Message
+from aiogram.client.bot import DefaultBotProperties
+
 import config
-
-bot = telebot.TeleBot(config.API)
-
-keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-keyboard.add('Набор массы', 'Похудение', 'Поддержание формы')
-
-back_keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-back_keyboard.add('Назад', 'IMPORT', 'OK')
 
 plan_for_weight_loss = [
     "<b>Понедельник</b>:\n- <b>Кардио:</b> 45 минут бега трусцой или плавания.\n- <b>Силовые тренировки:</b> Комплекс на все тело (3 подхода по 10-12 повторений каждого упражнения):\n  - Приседания\n  - Выпады\n  - Отжимания\n  - Становая тяга с легким весом\n  - Жим гантелей над головой",
@@ -40,35 +41,108 @@ plan_for_maintenance = [
 ]
 
 
-@bot.message_handler(commands=['start'])
-def start_command(message):
-    bot.send_message(message.chat.id, 'Выберите план:', reply_markup=keyboard)
+router = Router()
+bot = Bot(token=config.API, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+dp = Dispatcher(storage=MemoryStorage())
+dp.include_router(router)
 
-# Обработчик для обработки выбора плана
-@bot.message_handler(func=lambda message: True)
-def handle_plan_choice(message):
-    user_choice = message.text
-    remove_keyboard = telebot.types.ReplyKeyboardRemove()
-    if user_choice == 'Похудение':
-        for day_plan in plan_for_weight_loss:
-            bot.send_message(message.chat.id, day_plan, parse_mode='HTML', reply_markup=remove_keyboard)
-        bot.send_message(message.chat.id, 'Не забывайте про отдых между подходами и правильное питание', reply_markup=back_keyboard)
 
-    elif user_choice == 'Набор массы':
-        for day_plan in plan_for_muscle_gain:
-            bot.send_message(message.chat.id, day_plan, parse_mode='HTML', reply_markup=remove_keyboard)
-        bot.send_message(message.chat.id, 'Не забывайте про отдых между подходами и правильное питание', reply_markup=back_keyboard)
-    elif user_choice == 'Поддержание формы':
-        for day_plan in plan_for_maintenance:
-            bot.send_message(message.chat.id, day_plan, parse_mode='HTML', reply_markup=remove_keyboard)
-        bot.send_message(message.chat.id, 'Не забывайте про отдых между подходами и правильное питание', reply_markup=back_keyboard)
-    elif user_choice == 'Назад':
-        bot.send_message(message.chat.id, 'Выберите план:', reply_markup=keyboard)
-    elif user_choice == 'OK':
-        bot.send_message(message.chat.id, 'Желаю прогресса и удачных тренировок!', reply_markup=remove_keyboard)
-    elif user_choice == 'IMPORT':
-        bot.send_message(message.chat.id, 'Нужно что-то импортировать', reply_markup=remove_keyboard)
-    else:
-        bot.send_message(message.chat.id, 'Пожалуйста, выберите один из предложенных планов')
+@dp.message(Command("start"))
+async def cmd_start(message: types.Message):
+    kb = [
+        [
+            types.KeyboardButton(text="Похудение"),
+            types.KeyboardButton(text="Поддержание формы"),
+            types.KeyboardButton(text="Набор массы")
+        ],
+    ]
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True
+    )
+    await message.answer("Выберите план", reply_markup=keyboard)
+    
 
-bot.infinity_polling()
+@dp.message(F.text == "Похудение")
+async def weight_loss(message: types.Message):
+    for day_plan in plan_for_weight_loss:
+        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), parse_mode=ParseMode.HTML)
+    kb = [
+        [
+            types.KeyboardButton(text="Вернуться назад"),
+            types.KeyboardButton(text="ОК"),
+            types.KeyboardButton(text="IMPORT")
+        ],
+    ]
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True
+    )
+    await message.answer("Не забывайте про отдых между подходами и правильное питание", reply_markup=keyboard)
+
+@dp.message(F.text == "Поддержание формы")
+async def maintenance(message: types.Message):
+    for day_plan in plan_for_maintenance:
+        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), parse_mode=ParseMode.HTML)
+    kb = [
+        [
+            types.KeyboardButton(text="Вернуться назад"),
+            types.KeyboardButton(text="ОК"),
+            types.KeyboardButton(text="IMPORT")
+        ],
+    ]
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True
+    )
+    await message.answer("Не забывайте про отдых между подходами и правильное питание", reply_markup=keyboard)
+
+@dp.message(F.text == "Набор массы")
+async def muscle_gain(message: types.Message):
+    for day_plan in plan_for_muscle_gain:
+        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), parse_mode=ParseMode.HTML)
+    kb = [
+        [
+            types.KeyboardButton(text="Вернуться назад"),
+            types.KeyboardButton(text="ОК"),
+            types.KeyboardButton(text="IMPORT")
+        ],
+    ]
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True
+    )
+    await message.answer("Не забывайте про отдых между подходами и правильное питание", reply_markup=keyboard)
+
+@dp.message(F.text == "Вернуться назад")
+async def back(message: types.Message):
+    await message.answer("Возвращение назад", reply_markup=types.ReplyKeyboardRemove())
+    kb = [
+        [
+            types.KeyboardButton(text="Похудение"),
+            types.KeyboardButton(text="Поддержание формы"),
+            types.KeyboardButton(text="Набор массы")
+        ],
+    ]
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=kb,
+        resize_keyboard=True
+    )
+    await message.answer("Выберите план", reply_markup=keyboard)
+
+@dp.message(F.text == "IMPORT")
+async def import_smt(message: types.Message):
+    await message.answer("Вы отправили IMPORT", reply_markup=types.ReplyKeyboardRemove())
+
+@dp.message(F.text == "OK")
+async def import_smt(message: types.Message):
+    await message.answer("Вы отправили OK", reply_markup=types.ReplyKeyboardRemove())
+
+async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
+    await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(main())
