@@ -5,6 +5,7 @@ from src.utils.util import *
 from src.create_train.create_exc import *
 from src.create_train.choose_exist import *
 from src.create_train.create_train import *
+from src.standart_train.stand_train import *
 
 
 """Starting bot. 
