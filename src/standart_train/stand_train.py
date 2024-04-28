@@ -27,7 +27,8 @@ async def weight_loss(message: types.Message):
     That handler is the same as others handlers for 2 left categories. 
     """
     for day_plan in plan_for_weight_loss:
-        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), parse_mode=ParseMode.HTML)
+        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), 
+                             parse_mode=ParseMode.HTML)
     kb = [
         [
             types.KeyboardButton(text="Вернуться назад"),
@@ -39,12 +40,14 @@ async def weight_loss(message: types.Message):
         keyboard=kb,
         resize_keyboard=True
     )
-    await message.answer("Не забывайте про отдых между подходами и правильное питание", reply_markup=keyboard)
+    await message.answer("Не забывайте про отдых между подходами и правильное питание", 
+                         reply_markup=keyboard)
 
 @dp.message(F.text == "Поддержание формы")
 async def maintenance(message: types.Message):
     for day_plan in plan_for_maintenance:
-        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), parse_mode=ParseMode.HTML)
+        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), 
+                             parse_mode=ParseMode.HTML)
     kb = [
         [
             types.KeyboardButton(text="Вернуться назад"),
@@ -56,12 +59,14 @@ async def maintenance(message: types.Message):
         keyboard=kb,
         resize_keyboard=True
     )
-    await message.answer("Не забывайте про отдых между подходами и правильное питание", reply_markup=keyboard)
+    await message.answer("Не забывайте про отдых между подходами и правильное питание", 
+                         reply_markup=keyboard)
 
 @dp.message(F.text == "Набор массы")
 async def muscle_gain(message: types.Message):
     for day_plan in plan_for_muscle_gain:
-        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), parse_mode=ParseMode.HTML)
+        await message.answer(day_plan, reply_markup=types.ReplyKeyboardRemove(), 
+                             parse_mode=ParseMode.HTML)
     kb = [
         [
             types.KeyboardButton(text="Вернуться назад"),
@@ -73,7 +78,8 @@ async def muscle_gain(message: types.Message):
         keyboard=kb,
         resize_keyboard=True
     )
-    await message.answer("Не забывайте про отдых между подходами и правильное питание", reply_markup=keyboard)
+    await message.answer("Не забывайте про отдых между подходами и правильное питание", 
+                         reply_markup=keyboard)
 
 @dp.message(F.text == "Вернуться назад")
 async def back(message: types.Message):
@@ -97,4 +103,5 @@ async def import_smt(message: types.Message):
 
 @dp.message(F.text == "OK")
 async def import_smt(message: types.Message):
-    await message.answer(emoji.emojize(":1st_place_medal:"), reply_markup=types.ReplyKeyboardRemove())
+    await message.answer(emoji.emojize(":1st_place_medal:"), 
+                         reply_markup=types.ReplyKeyboardRemove())
