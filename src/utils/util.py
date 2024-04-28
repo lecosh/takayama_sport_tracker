@@ -39,6 +39,7 @@ class Choosing_excersize(StatesGroup):
     choose_creation_type = State() #choose type of added excersize
     choosen_train = State() #picked train
     own_excersize = State() 
+    insert_state = State()
 
 
 async def add_kb_next_exc(msg):

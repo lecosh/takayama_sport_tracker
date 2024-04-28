@@ -3,6 +3,8 @@ from aiogram.filters import StateFilter
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
+from ..edit_train.edit_train import push_new_train
+from ..edit_train.edit_train import amount_train, output, chosen_num
 from ..utils.constants import *
 from ..utils.util import *
 
@@ -27,7 +29,11 @@ async def handle_next_exc_choose(msg: Message, state: FSMContext):
     elif msg.text == 'Нет':
         await msg.answer("Для того, чтобы создать ещё одну тренировку введите /create_train", \
                          reply_markup=types.ReplyKeyboardRemove())
-        await push_train_db(state, msg)
+        data = await state.get_data()
+        if data.get('insert_flag') == False:
+            await push_train_db(state, msg)
+        else:
+            await push_new_train(state, msg)
         await state.set_state(None)
 
 
@@ -39,6 +45,8 @@ async def amount_handler(msg: Message, state: FSMContext):
     """
     await state.set_state(Choosing_excersize.choosen_train)
     await state.update_data(choosen_train="")
+    await state.set_state(Choosing_excersize.insert_state)
+    await state.update_data(insert_flag=False)
     await state.set_state(Choosing_excersize.choose_creation_type)
     exc_buttons = [
         [
