@@ -7,14 +7,17 @@ from src.create_train.choose_exist import *
 from src.create_train.create_train import *
 from src.standart_train.stand_train import *
 from src.edit_train.edit_train import *
+from src.get_trains.get_trains import *
+from src.helper.help import *
 
 
-"""Starting bot. 
-Note: user will be added in database only if command "/start" will be triggered
-"""
 @dp.message(Command("start"))
 async def start_handler(msg: Message, state: FSMContext):
-    await msg.answer("Привет!")
+    """Starting bot. 
+    Note: user will be added in database only if command "/start" will be triggered
+    """
+    await msg.answer(f"Привет, {msg.from_user.first_name}! Это бот для фитнес-трекинга.\n"
+                    "Чтобы посмотреть список доступных команд, введи /help.")
     cursor.execute("INSERT OR REPLACE INTO Trains (id, train) VALUES (?, ?)", 
                    (msg.from_user.id, ""))
     db.commit()
