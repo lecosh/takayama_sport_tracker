@@ -9,6 +9,7 @@ from src.standart_train.stand_train import *
 from src.edit_train.edit_train import *
 from src.get_trains.get_trains import *
 from src.helper.help import *
+from src.import_trains.import_trains import *
 
 
 @dp.message(Command("start"))
