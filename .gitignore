@@ -1,3 +1,5 @@
-apiinfo.py
-config.py
-kl1de.db
+.idea
+__pycache__
+*.db
+*.txt
+/src/utils/constants.py
