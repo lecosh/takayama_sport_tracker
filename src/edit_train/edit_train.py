@@ -127,11 +127,3 @@ async def edit_handler(msg: Message, state: FSMContext):
     #await msg.answer(f"Выберите тренировку(введите номер тренировки):")
     #await state.set_state(Choosing_excersize.choose_creation_type)
     await read_train_db(msg)
-
-
-@dp.message(Command("info"))
-async def info_handler(msg:Message):
-    await  msg.answer("Доступные комманды:\n/create_train - Создать тренировку.\
-                         \n/choose_standart_train - Выбрать тренировку из списка стандартных.\
-                         \n/import_your_train - Импортировать свою тренировку. \
-                         \n/edit_train - Редактировать тренировку.")
