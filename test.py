@@ -151,8 +151,9 @@ async def save_to_db(user_id, data):
         existing_train_data = await cursor.fetchone()
 
         if existing_train_data:
-            # Обновляем существующую запись новыми данными
-            await db.execute('UPDATE Trains SET train = ? WHERE id = ?', (new_train_data, user_id))
+            # Если данные уже существуют, добавляем новые данные к существующим
+            updated_train_data = existing_train_data[0] + new_train_data
+            await db.execute('UPDATE Trains SET train = ? WHERE id = ?', (updated_train_data, user_id))
         else:
             # Добавляем новые данные, если для этого пользователя их еще нет
             await db.execute('INSERT INTO Trains (id, train) VALUES (?, ?)', (user_id, new_train_data))
