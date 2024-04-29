@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import sqlite3
+import config
 
 from aiogram import Bot, Dispatcher, Router, types, F
 from aiogram.enums.parse_mode import ParseMode
@@ -8,7 +10,6 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from aiogram.client.bot import DefaultBotProperties
 
-import config
 
 plan_for_weight_loss = [
     "<b>Понедельник</b>:\n- <b>Кардио:</b> 45 минут бега трусцой или плавания.\n- <b>Силовые тренировки:</b> Комплекс на все тело (3 подхода по 10-12 повторений каждого упражнения):\n  - Приседания\n  - Выпады\n  - Отжимания\n  - Становая тяга с легким весом\n  - Жим гантелей над головой",
@@ -137,6 +138,32 @@ async def import_smt(message: types.Message):
 @dp.message(F.text == "OK")
 async def import_smt(message: types.Message):
     await message.answer("Вы отправили OK", reply_markup=types.ReplyKeyboardRemove())
+
+db = sqlite3.connect('my_database.db')
+cursor = db.cursor()
+cursor.execute("CREATE TABLE IF NOT EXISTS Trains(id INTEGER, train TEXT, UNIQUE(id))")
+db.commit()
+
+@dp.message(lambda message: message.text == "Показать все тренировки")
+async def sql(msg: types.Message):
+    cursor.execute("SELECT train FROM TRAINS WHERE ID = ?", (msg.from_user.id,))
+
+    rows = cursor.fetchall()
+    
+    result_list = [row[0] for row in rows]
+    if len(result_list) == 0:
+        await msg.answer('Тренировок нет')
+    else:
+        split_result = []
+        for train in result_list:
+            split_train = train.split('\n\n')
+            split_result.extend([part.strip() for part in split_train])
+
+        count = 1
+        for train in split_result:
+            await msg.answer(f'<b>Тренировка {count}</b>:', parse_mode=ParseMode.HTML)
+            await msg.answer(train)
+            count += 1
 
 async def main():
     await bot.delete_webhook(drop_pending_updates=True)
