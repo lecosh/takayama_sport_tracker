@@ -32,8 +32,8 @@ async def type_exc_handler(msg: types.Message, state: FSMContext):
     else:
         exc_str = create_list(own_body_excersize)
     await msg.answer(f"Вот список \"{msg.text}\": {exc_str}", 
-                     reply_markup=types.ReplyKeyboardRemove(),
-                     input_field_placeholder="Введите номер упражнения...")
+                    reply_markup=types.ReplyKeyboardRemove(),
+                    input_field_placeholder="Введите номер упражнения...")
     await state.update_data(choosen_type=msg.text)
     await state.set_state(Choosing_excersize.number_exc)
 
