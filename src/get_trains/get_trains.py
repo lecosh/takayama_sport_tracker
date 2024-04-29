@@ -10,7 +10,8 @@ async def handle_get_trains(msg: types.Message):
     rows = cursor.fetchall()
     
     result_list = [row[0] for row in rows]
-    if len(result_list) == 0:
+    print(f"result LIST {result_list}")
+    if len(result_list[0]) == 0:
         await msg.answer('Тренировок нет')
     else:
         split_result = []
