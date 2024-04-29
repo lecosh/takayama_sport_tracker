@@ -11,6 +11,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.enums.parse_mode import ParseMode
 from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.client.bot import DefaultBotProperties
+from aiogram.types import InputFile
 import openpyxl
 import apiinfo
 import sqlite3
@@ -36,7 +37,9 @@ async def info_handler(msg:Message):
     await  msg.answer("Доступные комманды:\n/edit_train - Позволяет отредактировать выбранную тренировку.\
                          \n/create_train - Создать тренировку.\
                          \n/choose_standart_train - Выбрать тренировку из списка стандартных.\
-                         \n/import_your_train - Импортировать свою тренировку")
+                         \n/import_your_train - Импортировать свою тренировку\
+                         \n/send_sample_file - Бот отпрвит вам файл пример для импорта из XLSX или CSV")
+
 
 
 @dp.message(Command("import_your_train"))
@@ -51,6 +54,7 @@ async def import_handler(msg:Message):
     
 @dp.message(lambda message: message.text == "CSV" or message.text == "XLSX")
 async def format_selected(msg: Message):
+    await msg.answer("Первые семь столбцов таблицы отвечают за дни недели. Ниже в каждой ячейке столбца указывайте упражнение.")
     if msg.text == "CSV":
         await msg.answer("Вы выбрали формат: CSV")
     elif msg.text == "XLSX":
@@ -100,18 +104,38 @@ def read_csv(file_path):
     with open(file_path, newline='', encoding='utf-8') as csvfile:
         reader = csv.reader(csvfile)
         next(reader)  # Пропускаем заголовок
+        
+        # Инициализация списка списков для столбцов
         for row in reader:
-            data.append(row[:7])  # Считываем только первые семь колонок
-    return data
+            # Расширяем список столбцов, если это необходимо
+            if len(data) < len(row):
+                for _ in range(len(row) - len(data)):
+                    data.append([])
+            # Добавляем данные в соответствующие списки столбцов
+            for i, value in enumerate(row):
+                if i < 7:  # Ограничиваем чтение только первыми семью колонками
+                    data[i].append(value)
+
+    # Форматирование данных для вывода
+    # Преобразуем список списков в строку, где столбцы разделены двумя переносами строк
+    formatted_data = '\n\n'.join(['\n'.join(col) for col in data])
+    return formatted_data
 
 # Чтение данных из xlsx файла
 def read_xlsx(file_path):
     workbook = openpyxl.load_workbook(file_path)
     sheet = workbook.active
+    max_col = sheet.max_column  # Получаем количество столбцов
     data = []
-    for row in sheet.iter_rows(min_row=2, max_col=7, values_only=True):
-        data.append(list(row))
-    return data
+
+    # Собираем данные по столбцам
+    for col in sheet.iter_cols(min_row=2, max_col=max_col, values_only=True):
+        column_data = [cell if cell is not None else "" for cell in col]  # Замена None на пустую строку
+        data.append(column_data)
+
+    # Преобразуем список списков в строку, где столбцы разделены двумя переносами строк
+    formatted_data = '\n\n'.join(['\n'.join(map(str, col)) for col in data])
+    return formatted_data
 
 
 async def save_to_db(user_id, data):
@@ -120,8 +144,8 @@ async def save_to_db(user_id, data):
         await db.execute('CREATE TABLE IF NOT EXISTS Trains (id INTEGER PRIMARY KEY, train TEXT)')
 
         # Преобразуем все строки входных данных в одну строку текста
-        new_train_data = ', '.join(', '.join(str(item) for item in row) for row in data)
-
+        new_train_data = ''.join(''.join(str(item) for item in row) for row in data)
+        new_train_data = '\n' + new_train_data
         # Проверяем наличие существующих данных для этого пользователя
         cursor = await db.execute('SELECT train FROM Trains WHERE id = ?', (user_id,))
         existing_train_data = await cursor.fetchone()
