@@ -4,7 +4,6 @@ from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
 from ..edit_train.edit_train import push_new_train
-from ..edit_train.edit_train import amount_train, output, chosen_num
 from ..utils.constants import *
 from ..utils.util import *
 
